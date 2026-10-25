@@ -35,13 +35,9 @@ tools = {
     "apply_discount": apply_discount,
 }
 
-# CHANGE 3: Delete the JSON schemas. Tools now live inside the prompt as plain text.
-# We derive descriptions from the functions themselves using inspect.
-
 def get_tool_descriptions(tools_dict):
     descriptions = []
     for tool_name, tool_function in tools_dict.items():
-        # __wrapped__ bypasses decorator wrappers (e.g., @traceable adds *, config=None)
         original_function = getattr(tool_function, "__wrapped__", tool_function)
         signature = inspect.signature(original_function)
         docstring = inspect.getdoc(tool_function) or ""
