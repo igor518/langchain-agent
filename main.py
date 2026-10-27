@@ -12,7 +12,7 @@ embeddings = OpenAIEmbeddings(
     model="text-embedding-3-small",
     dimensions=1536,
 )
-llm = ChatOpenAI(model="gpt-4.1-mini")
+llm = ChatOpenAI(model="gpt-6.1-terra")
 
 vectorstore = PineconeVectorStore(
     index_name=os.environ["PINECONE_INDEX_NAME"], embedding=embeddings
@@ -30,11 +30,18 @@ promt_template = ChatPromptTemplate.from_template(
 )
 
 def format_docs(docs):
-    return "\n\n".join([doc.page_content for doc in docs])
+    return "\n\n".join(doc.page_content for doc in docs)
+
+def retrieval_chain_without_lcel(query: str):
+    docs = retriever.invoke(query)
+    context = format_docs(docs)
+    messages = promt_template.format_messages(context=context, question=query)
+    response = llm.invoke(messages)
+    return response.content
+
 
 if __name__ == "__main__":
     print("Retrieving...")
-    # Query
     query = "what is Pinecone in machine learning?"
 
     print("\n" + "=" * 70)
@@ -43,3 +50,8 @@ if __name__ == "__main__":
     result_raw = llm.invoke(query)
     print("\nAnswer:")
     print(result_raw.content)
+    print("IMPLEMENTATION 1: Implementation without LCEL")
+    print("=" * 70)
+    result_without_lcel = retrieval_chain_without_lcel(query)
+    print("\nAnswer:")
+    print(result_without_lcel)
